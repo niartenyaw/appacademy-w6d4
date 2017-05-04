@@ -119,6 +119,18 @@ class DOMNodeCollection {
     this.htmlEls = [];
   }
 
+  on(type, ...args) {
+    if (args.length > 1) {
+      // TODO
+    }
+    else {
+      for (let i = 0; i < this.htmlEls.length; i++) {
+        const callback = args[0];
+        this.htmlEls[i].addEventListener(type, callback);
+      }
+    }
+  }
+
 }
 
 module.exports = DOMNodeCollection;

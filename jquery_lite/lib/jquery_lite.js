@@ -71,6 +71,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 const DOMNodeCollection = __webpack_require__(1);
+const Listeners = __webpack_require__(2);
 
 Window.prototype.$l = function (selector) {
   let array = [];
@@ -83,9 +84,25 @@ Window.prototype.$l = function (selector) {
   if (selector instanceof HTMLElement) {
     array.push(selector);
   }
+
+  if (selector instanceof Function) {
+    document.addEventListener('DOMContentLoaded', selector);
+    return;
+  }
+
   const dom = new DOMNodeCollection(array);
   return dom;
+
 };
+
+window.$l(() => {
+  const children = window.$l(".restaurants").children();
+  for (var i = 0; i < children.htmlEls.length; i++) {
+    const el = children.htmlEls[i];
+    const cb = Listeners.clickAlert.bind(el);
+    window.$l(el).on("click", cb);
+  }
+});
 
 
 /***/ }),
@@ -213,9 +230,34 @@ class DOMNodeCollection {
     this.htmlEls = [];
   }
 
+  on(type, ...args) {
+    if (args.length > 1) {
+      // TODO
+    }
+    else {
+      for (let i = 0; i < this.htmlEls.length; i++) {
+        const callback = args[0];
+        this.htmlEls[i].addEventListener(type, callback);
+      }
+    }
+  }
+
 }
 
 module.exports = DOMNodeCollection;
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports) {
+
+const Listeners = {
+  clickAlert: function() {
+    alert(this.innerHTML);
+  }
+};
+
+module.exports = Listeners;
 
 
 /***/ })
