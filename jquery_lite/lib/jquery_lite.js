@@ -72,6 +72,7 @@
 
 const DOMNodeCollection = __webpack_require__(1);
 const Listeners = __webpack_require__(2);
+const APIUtils = __webpack_require__(3);
 
 Window.prototype.$l = function (selector) {
   let array = [];
@@ -95,6 +96,57 @@ Window.prototype.$l = function (selector) {
 
 };
 
+Window.prototype.$l.extend = function (...args) {
+  const merged = {};
+  for (let i = 0; i < args.length; i++) {
+    for (let k in args[i]) {
+      merged[k] = args[i][k];
+    }
+  }
+
+  return merged;
+};
+
+Window.prototype.$l.ajax = function( options = {}) {
+  let defaults = {
+    url: "/",
+    method: "GET",
+    data: {},
+    contentType: "HTMl",
+    success: () => {},
+    error: () => {}
+  };
+
+  options = this.extend(defaults, options);
+
+  const xhr = new XMLHttpRequest();
+
+  xhr.open(options['method'], options['url']);
+
+  xhr.onload = function () {
+    console.log(xhr.status); // for status info
+    console.log(xhr.responseType); //the type of data that was returned
+    console.log(xhr.response); //the actual response. For json api calls, this will be a json string
+    // console.log(xhr.response);
+    // return xhr.response;
+  };
+  return xhr.send();
+};
+
+function addLi(data) {
+  for (let k in data) {
+    const $newLi = document.createElement("li");
+    if (data[k] instanceof Object) {
+      const $newUl = document.createElement("ul");
+      addLi($newUl, data[k]).bind($newUl);
+      $newLi.innerHTML = $newUl.outerHTML;
+    } else {
+      $newLi.innerHTML = data[k];
+    }
+    this.append($newLi);
+  }
+}
+
 window.$l(() => {
   const children = window.$l(".restaurants").children();
   for (var i = 0; i < children.htmlEls.length; i++) {
@@ -102,6 +154,12 @@ window.$l(() => {
     const cb = Listeners.clickAlert.bind(el);
     window.$l(el).on("click", cb);
   }
+
+  const $weather = window.$l(".weather");
+  $weather.on("click", () => {
+    $weather.empty();
+    const data = APIUtils.test(addLi.bind($weather));
+  });
 });
 
 
@@ -258,6 +316,29 @@ const Listeners = {
 };
 
 module.exports = Listeners;
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports) {
+
+const APIUtils = {
+  test: function(callback) {
+    return window.$l.ajax({
+      url: "http://api.openweathermap.org/data/2.5/weather?q=London,uk&appid=bcb83c4b54aee8418983c2aff3073b3b",
+      method: 'GET',
+      success(res) {
+        console.log(res);
+        callback(res);
+      },
+      error() {
+        console.log("error");
+      }
+    });
+  }
+};
+
+module.exports = APIUtils;
 
 
 /***/ })
